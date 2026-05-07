@@ -12,6 +12,9 @@ import { saveFile } from './utils/file-utils';
 import { debugLog } from './utils/debug';
 import { updateSidebarWidth, addResizeHandle, cleanupResizeHandlers } from './utils/iframe-resize';
 import { parseForClip } from './utils/clip-utils';
+import { isLarkDocumentUrl } from './lark/lark-url';
+import { extractLarkPage } from './lark/lark-dom';
+import { createLarkSnapshotDocument } from './lark/lark-snapshot';
 
 declare global {
 	interface Window {
@@ -106,6 +109,12 @@ declare global {
 		wordCount: number;
 		language: string;
 		metaTags: { name?: string | null; property?: string | null; content: string | null }[];
+	}
+
+	function countWords(text: string): number {
+		const latinWords = text.match(/[A-Za-z0-9]+(?:['-][A-Za-z0-9]+)*/g) || [];
+		const cjkCharacters = text.match(/[\u3400-\u9fff]/g) || [];
+		return latinWords.length + cjkCharacters.length;
 	}
 
 	browser.runtime.onMessage.addListener((request: any, sender, sendResponse) => {
@@ -209,6 +218,38 @@ declare global {
 					const div = document.createElement('div');
 					div.appendChild(clonedSelection);
 					selectedHtml = serializeChildren(div);
+				}
+
+				if (isLarkDocumentUrl(document.URL)) {
+					const larkSnapshot = await createLarkSnapshotDocument(document);
+					const larkPage = extractLarkPage(larkSnapshot, document.URL);
+					if (larkPage.hasDocumentBlocks && larkPage.contentHtml.trim()) {
+						const response: ContentResponse = {
+							author: '',
+							content: larkPage.contentHtml,
+							description: '',
+							domain: getDomain(document.URL),
+							extractedContent: larkPage.extractedContent,
+							favicon: '',
+							fullHtml: `<article>${larkPage.contentHtml}</article>`,
+							highlights: highlighter.getHighlights(),
+							image: '',
+							language: document.documentElement.lang || '',
+							parseTime: 0,
+							published: '',
+							schemaOrgData: null,
+							selectedHtml,
+							site: 'Feishu/Lark',
+							title: larkPage.title,
+							wordCount: countWords(larkPage.plainText),
+							metaTags: [],
+						};
+						response.extractedContent.larkAssets = JSON.stringify(larkPage.assets);
+						highlighter.setPageTitle(larkPage.title);
+						highlighter.updatePageDomainSettings({ site: 'Feishu/Lark', favicon: '' });
+						sendResponse(response);
+						return;
+					}
 				}
 
 				// Use parseAsync to ensure async variables like {{transcript}} are available.

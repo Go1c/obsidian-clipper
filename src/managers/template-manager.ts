@@ -46,12 +46,18 @@ export async function loadTemplates(): Promise<Template[]> {
 			}));
 
 			templates = loadedTemplates.filter((t: Template | null): t is Template => t !== null);
+		} else {
+			templates = [];
 		}
 
 		if (templates.length === 0) {
 			console.log('No valid templates found, creating default template');
 			const defaultTemplate = createDefaultTemplate();
 			templates = [defaultTemplate];
+			await saveTemplateSettings();
+		}
+
+		if (ensureBuiltInTemplates()) {
 			await saveTemplateSettings();
 		}
 
@@ -63,6 +69,7 @@ export async function loadTemplates(): Promise<Template[]> {
 		console.error('Error loading templates:', error);
 		const defaultTemplate = createDefaultTemplate();
 		templates = [defaultTemplate];
+		ensureBuiltInTemplates();
 		await saveTemplateSettings();
 		return templates;
 	}
@@ -130,6 +137,31 @@ export function createDefaultTemplate(): Template {
 		],
 		triggers: []
 	};
+}
+
+export function createLarkTemplate(): Template {
+	return {
+		id: 'builtin-lark-document',
+		name: 'Feishu/Lark Document',
+		behavior: 'create',
+		noteNameFormat: '{{title}}',
+		path: 'Lark Docs',
+		noteContentFormat: '{{content}}',
+		context: '',
+		properties: [],
+		triggers: [
+			'/^https:\\/\\/[^/]+\\.(feishu\\.cn|larksuite\\.com)\\/(docx|docs|wiki)\\//',
+		],
+	};
+}
+
+function ensureBuiltInTemplates(): boolean {
+	if (templates.some(template => template.id === 'builtin-lark-document')) {
+		return false;
+	}
+
+	templates.push(createLarkTemplate());
+	return true;
 }
 
 export function getEditingTemplateIndex(): number {

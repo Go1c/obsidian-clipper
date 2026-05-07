@@ -2,7 +2,7 @@ import { handleDragStart, handleDragOver, handleDrop, handleDragEnd } from '../u
 import { initializeIcons } from '../icons/icons';
 import { getCommands } from '../utils/hotkeys';
 import { initializeToggles, updateToggleState, initializeSettingToggle } from '../utils/ui-utils';
-import { generalSettings, loadSettings, saveSettings, setLocalStorage, getLocalStorage } from '../utils/storage-utils';
+import { defaultLarkPluginSettings, generalSettings, loadSettings, saveSettings, setLocalStorage, getLocalStorage } from '../utils/storage-utils';
 import { detectBrowser } from '../utils/browser-detection';
 import { createElementWithClass, createElementWithHTML } from '../utils/dom-utils';
 import { createDefaultTemplate, getTemplates, saveTemplateSettings } from '../managers/template-manager';
@@ -10,6 +10,7 @@ import { updateTemplateList, showTemplateEditor } from '../managers/template-ui'
 import { exportAllSettings, importAllSettings } from '../utils/import-export';
 import { Settings, Template } from '../types/types';
 import { exportHighlights } from './highlights-manager';
+import { loadLarkApiCredentials, saveLarkApiCredentials } from '../lark/lark-api-credentials';
 import { getMessage, setupLanguageAndDirection } from '../utils/i18n';
 import { debounce } from '../utils/debounce';
 import browser from '../utils/browser-polyfill';
@@ -218,6 +219,8 @@ export function initializeGeneralSettings(): void {
 		initializeSilentOpenToggle();
 		initializeVaultInput();
 		initializeOpenBehaviorDropdown();
+		initializeLarkPluginSettings();
+		initializeLarkApiCredentialsSettings();
 		initializeKeyboardShortcuts();
 		initializeToggles();
 		setShortcutInstructions();
@@ -256,6 +259,11 @@ function saveSettingsFromForm(): void {
 	const highlighterToggle = document.getElementById('highlighter-toggle') as HTMLInputElement;
 	const alwaysShowHighlightsToggle = document.getElementById('highlighter-visibility') as HTMLInputElement;
 	const highlightBehaviorSelect = document.getElementById('highlighter-behavior') as HTMLSelectElement;
+	const larkPluginEndpointInput = document.getElementById('lark-plugin-endpoint') as HTMLInputElement;
+	const larkPluginApiKeyInput = document.getElementById('lark-plugin-api-key') as HTMLInputElement;
+	const larkPluginNoteFolderInput = document.getElementById('lark-plugin-default-note-folder') as HTMLInputElement;
+	const larkPluginAssetFolderInput = document.getElementById('lark-plugin-default-asset-folder') as HTMLInputElement;
+	const larkPluginSettings = generalSettings.larkPlugin ?? defaultLarkPluginSettings;
 
 	const updatedSettings = {
 		...generalSettings, // Keep existing settings
@@ -266,10 +274,80 @@ function saveSettingsFromForm(): void {
 		silentOpen: silentOpenToggle?.checked ?? generalSettings.silentOpen,
 		highlighterEnabled: highlighterToggle?.checked ?? generalSettings.highlighterEnabled,
 		alwaysShowHighlights: alwaysShowHighlightsToggle?.checked ?? generalSettings.alwaysShowHighlights,
-		highlightBehavior: highlightBehaviorSelect?.value ?? generalSettings.highlightBehavior
+		highlightBehavior: highlightBehaviorSelect?.value ?? generalSettings.highlightBehavior,
+		larkPlugin: {
+			endpoint: larkPluginEndpointInput?.value ?? larkPluginSettings.endpoint,
+			apiKey: larkPluginApiKeyInput?.value ?? larkPluginSettings.apiKey,
+			defaultNoteFolder: larkPluginNoteFolderInput?.value ?? larkPluginSettings.defaultNoteFolder,
+			defaultAssetFolder: larkPluginAssetFolderInput?.value ?? larkPluginSettings.defaultAssetFolder
+		}
 	};
 
 	saveSettings(updatedSettings);
+}
+
+function initializeLarkPluginSettings(): void {
+	const larkPluginSettings = generalSettings.larkPlugin ?? defaultLarkPluginSettings;
+	const endpointInput = document.getElementById('lark-plugin-endpoint') as HTMLInputElement;
+	const apiKeyInput = document.getElementById('lark-plugin-api-key') as HTMLInputElement;
+	const noteFolderInput = document.getElementById('lark-plugin-default-note-folder') as HTMLInputElement;
+	const assetFolderInput = document.getElementById('lark-plugin-default-asset-folder') as HTMLInputElement;
+
+	if (endpointInput) {
+		endpointInput.value = larkPluginSettings.endpoint;
+	}
+
+	if (apiKeyInput) {
+		apiKeyInput.value = larkPluginSettings.apiKey;
+	}
+
+	if (noteFolderInput) {
+		noteFolderInput.value = larkPluginSettings.defaultNoteFolder;
+	}
+
+	if (assetFolderInput) {
+		assetFolderInput.value = larkPluginSettings.defaultAssetFolder;
+	}
+}
+
+function initializeLarkApiCredentialsSettings(): void {
+	const appIdInput = document.getElementById('lark-api-app-id') as HTMLInputElement | null;
+	const appSecretInput = document.getElementById('lark-api-app-secret') as HTMLInputElement | null;
+	const clearBtn = document.getElementById('lark-api-clear-btn') as HTMLButtonElement | null;
+	if (!appIdInput || !appSecretInput) return;
+
+	loadLarkApiCredentials().then(creds => {
+		if (creds) {
+			appIdInput.value = creds.appId;
+			appSecretInput.value = creds.appSecret;
+		}
+	}).catch(() => {
+		// ignore — leave fields empty
+	});
+
+	const persist = (): void => {
+		const appId = appIdInput.value.trim();
+		const appSecret = appSecretInput.value.trim();
+		if (!appId && !appSecret) {
+			void saveLarkApiCredentials(null);
+			return;
+		}
+		if (!appId || !appSecret) return; // Wait until both filled
+		void saveLarkApiCredentials({ appId, appSecret });
+	};
+
+	appIdInput.addEventListener('change', persist);
+	appIdInput.addEventListener('blur', persist);
+	appSecretInput.addEventListener('change', persist);
+	appSecretInput.addEventListener('blur', persist);
+
+	if (clearBtn) {
+		clearBtn.addEventListener('click', () => {
+			appIdInput.value = '';
+			appSecretInput.value = '';
+			void saveLarkApiCredentials(null);
+		});
+	}
 }
 
 function initializeShowMoreActionsToggle(): void {

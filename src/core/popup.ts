@@ -6,7 +6,7 @@ import { extractPageContent, initializePageContent } from '../utils/content-extr
 import { compileTemplate } from '../utils/template-compiler';
 import { initializeIcons, getPropertyTypeIcon } from '../icons/icons';
 import { findMatchingTemplate, initializeTriggers } from '../utils/triggers';
-import { getLocalStorage, setLocalStorage, loadSettings, generalSettings, Settings } from '../utils/storage-utils';
+import { getLocalStorage, setLocalStorage, loadSettings, generalSettings, Settings, defaultLarkPluginSettings } from '../utils/storage-utils';
 import { escapeHtml, unescapeValue } from '../utils/string-utils';
 import { loadTemplates, createDefaultTemplate } from '../managers/template-manager';
 import browser from '../utils/browser-polyfill';
@@ -23,6 +23,11 @@ import { sanitizeFileName } from '../utils/string-utils';
 import { saveFile } from '../utils/file-utils';
 import { translatePage, getMessage, setupLanguageAndDirection } from '../utils/i18n';
 import { formatPropertyValue } from '../utils/shared';
+import { buildLarkImportPayload, parseLarkAssets } from '../lark/lark-import-payload';
+import { checkLarkPluginHealth, importLarkDocument } from '../lark/lark-plugin-client';
+import { fetchLarkDocumentViaApi, parseLarkApiUrl } from '../lark/lark-api';
+import { buildLarkApiImportPayload } from '../lark/lark-api-payload';
+import { loadLarkApiCredentials } from '../lark/lark-api-credentials';
 
 interface ReaderModeResponse {
 	success: boolean;
@@ -1317,10 +1322,23 @@ async function handleClipObsidian(): Promise<void> {
 	const noteNameField = document.getElementById('note-name-field') as HTMLInputElement;
 	const pathField = document.getElementById('path-name-field') as HTMLInputElement;
 	const interpretBtn = document.getElementById('interpret-btn') as HTMLButtonElement;
+	const clipButton = document.getElementById('clip-btn') as HTMLButtonElement | null;
 
 	if (!vaultDropdown || !noteContentField) {
 		showError('Some required fields are missing. Please try reloading the extension.');
 		return;
+	}
+
+	// Guard against double-click while a save is in flight (Lark API path can take 5+ seconds).
+	if (clipButton?.dataset.clipping === '1') {
+		return;
+	}
+	const originalButtonText = clipButton?.textContent ?? '';
+	if (clipButton) {
+		clipButton.dataset.clipping = '1';
+		clipButton.disabled = true;
+		clipButton.textContent = getMessage('saving') || 'Saving…';
+		clipButton.classList.add('is-loading');
 	}
 
 	try {
@@ -1346,7 +1364,11 @@ async function handleClipObsidian(): Promise<void> {
 		const noteName = isDailyNote ? '' : noteNameField?.value || '';
 		const path = isDailyNote ? '' : pathField?.value || '';
 
-		await saveToObsidian(fileContent, noteName, path, selectedVault, currentTemplate.behavior);
+		const importedViaLarkPlugin = await tryImportLarkDocument(fileContent, noteName, path);
+		if (!importedViaLarkPlugin) {
+			await saveToObsidian(fileContent, noteName, path, selectedVault, currentTemplate.behavior);
+		}
+
 		const tabInfo = await getCurrentTabInfo();
 		await incrementStat('addToObsidian', selectedVault, path, tabInfo.url, tabInfo.title);
 
@@ -1358,9 +1380,115 @@ async function handleClipObsidian(): Promise<void> {
 		}
 	} catch (error) {
 		console.error('Error in handleClipObsidian:', error);
-		showError('failedToSaveFile');
+		showError(error instanceof Error ? error.message : 'failedToSaveFile');
 		throw error;
+	} finally {
+		if (clipButton) {
+			delete clipButton.dataset.clipping;
+			clipButton.disabled = false;
+			clipButton.classList.remove('is-loading');
+			if (originalButtonText) {
+				clipButton.textContent = originalButtonText;
+			}
+		}
 	}
+}
+
+function supportsLarkPluginImportBehavior(behavior: Template['behavior']): boolean {
+	return behavior === 'create' || behavior === 'overwrite';
+}
+
+async function tryImportLarkDocument(fileContent: string, noteName: string, path: string): Promise<boolean> {
+	if (!currentTemplate || !currentTabId) {
+		return false;
+	}
+
+	if (!supportsLarkPluginImportBehavior(currentTemplate.behavior)) {
+		return false;
+	}
+
+	const endpoint = loadedSettings.larkPlugin?.endpoint?.trim();
+	if (!endpoint) {
+		return false;
+	}
+
+	// API path: when Lark API credentials are configured, fetch the document
+	// directly from open.feishu.cn instead of scraping the DOM. Falls back to
+	// the DOM extraction below on any failure.
+	const apiCreds = await loadLarkApiCredentials().catch(() => null);
+	if (apiCreds) {
+		try {
+			const tabInfo = await getTabInfo(currentTabId);
+			const tabUrl = tabInfo?.url || '';
+			const { wikiToken, docxToken } = parseLarkApiUrl(tabUrl);
+			if (wikiToken || docxToken) {
+				const apiResult = await fetchLarkDocumentViaApi(tabUrl, apiCreds);
+				const docId = wikiToken || docxToken || '';
+				const title = noteName.trim() || apiResult.title || 'Untitled Lark Document';
+				const noteFolder = path.trim() || loadedSettings.larkPlugin?.defaultNoteFolder?.trim() || defaultLarkPluginSettings.defaultNoteFolder;
+				const assetFolder = loadedSettings.larkPlugin?.defaultAssetFolder?.trim() || defaultLarkPluginSettings.defaultAssetFolder;
+
+				const formData = buildLarkApiImportPayload({
+					docId,
+					title,
+					sourceUrl: tabUrl,
+					noteFolder,
+					assetFolder,
+					markdown: apiResult.markdown,
+					assets: apiResult.assets,
+					files: apiResult.files,
+				});
+
+				try {
+					await checkLarkPluginHealth(loadedSettings);
+					await importLarkDocument(loadedSettings, formData);
+					return true;
+				} catch (err) {
+					console.warn('Lark API import via plugin failed:', err);
+					// fall through to DOM path
+				}
+			}
+		} catch (err) {
+			console.warn('Lark API path failed, falling back to DOM extraction:', err);
+		}
+	}
+
+	const extractedData = await memoizedExtractPageContent(currentTabId);
+	const extractedContent = extractedData?.extractedContent;
+	if (!extractedContent) {
+		return false;
+	}
+
+	const docId = extractedContent?.larkDocumentId?.trim();
+	const sourceUrl = extractedContent?.larkSourceUrl?.trim();
+
+	if (!docId || !sourceUrl) {
+		return false;
+	}
+
+	const assets = parseLarkAssets(extractedContent.larkAssets);
+	const title = noteName.trim() || extractedData?.title?.trim() || currentVariables.title || 'Untitled Lark Document';
+	const noteFolder = path.trim() || loadedSettings.larkPlugin?.defaultNoteFolder?.trim() || defaultLarkPluginSettings.defaultNoteFolder;
+	const assetFolder = loadedSettings.larkPlugin?.defaultAssetFolder?.trim() || defaultLarkPluginSettings.defaultAssetFolder;
+
+	const formData = await buildLarkImportPayload({
+		docId,
+		title,
+		sourceUrl,
+		noteFolder,
+		assetFolder,
+		markdown: fileContent,
+		assets,
+	});
+
+	try {
+		await checkLarkPluginHealth(loadedSettings);
+	} catch {
+		return false;
+	}
+
+	await importLarkDocument(loadedSettings, formData);
+	return true;
 }
 
 function addSecondaryAction(container: Element, actionType: string, handler: () => void) {

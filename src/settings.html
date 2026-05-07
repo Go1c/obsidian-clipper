@@ -203,6 +203,54 @@
 										</div>
 									</div>
 								</div>
+								<div class="setting-item setting-item-heading"><h3 data-i18n="larkPluginHeading">Lark plugin</h3></div>
+								<div class="setting-items">
+									<div class="setting-item">
+										<label for="lark-plugin-endpoint" data-i18n="larkPluginEndpoint">Endpoint</label>
+										<div class="setting-item-description" data-i18n="larkPluginEndpointDescription">Base URL for the local Lark import plugin service.</div>
+										<input type="text" id="lark-plugin-endpoint" data-i18n="larkPluginEndpointPlaceholder" spellcheck="false" />
+									</div>
+									<div class="setting-item">
+										<label for="lark-plugin-api-key" data-i18n="larkPluginApiKey">API key</label>
+										<div class="setting-item-description" data-i18n="larkPluginApiKeyDescription">Bearer token used when the extension talks to the plugin.</div>
+										<input type="password" id="lark-plugin-api-key" data-i18n="larkPluginApiKeyPlaceholder" spellcheck="false" />
+									</div>
+									<div class="setting-item">
+										<label for="lark-plugin-default-note-folder" data-i18n="larkPluginDefaultNoteFolder">Default note folder</label>
+										<div class="setting-item-description" data-i18n="larkPluginDefaultNoteFolderDescription">Default folder for imported Lark notes in your vault.</div>
+										<input type="text" id="lark-plugin-default-note-folder" data-i18n="larkPluginDefaultNoteFolderPlaceholder" spellcheck="false" />
+									</div>
+									<div class="setting-item">
+										<label for="lark-plugin-default-asset-folder" data-i18n="larkPluginDefaultAssetFolder">Default asset folder</label>
+										<div class="setting-item-description" data-i18n="larkPluginDefaultAssetFolderDescription">Default folder for assets generated during Lark imports.</div>
+										<input type="text" id="lark-plugin-default-asset-folder" data-i18n="larkPluginDefaultAssetFolderPlaceholder" spellcheck="false" />
+									</div>
+								</div>
+								<div class="setting-item setting-item-heading"><h3>Lark API credentials (optional)</h3></div>
+								<div class="setting-items">
+									<div class="setting-item">
+										<div class="setting-item-description">When set, the clipper fetches Lark documents through the official OpenAPI (exact block order, clean attachments). Falls back to DOM scraping if empty or if the call fails. Create a self-built app at open.feishu.cn and grant <code>wiki:wiki:readonly</code>, <code>docx:document:readonly</code>, and <code>drive:drive:readonly</code>.</div>
+									</div>
+									<div class="setting-item">
+										<label for="lark-api-app-id">App ID</label>
+										<div class="setting-item-description">e.g. <code>cli_xxxxxxxxxxxxxxxx</code></div>
+										<input type="text" id="lark-api-app-id" spellcheck="false" autocomplete="off" />
+									</div>
+									<div class="setting-item">
+										<label for="lark-api-app-secret">App Secret</label>
+										<div class="setting-item-description">Stored locally in <code>chrome.storage.local</code>, not synced across devices.</div>
+										<input type="password" id="lark-api-app-secret" spellcheck="false" autocomplete="off" />
+									</div>
+									<div class="setting-item mod-horizontal">
+										<div class="setting-item-info">
+											<label>Clear credentials</label>
+											<div class="setting-item-description">Remove both fields and disable API mode.</div>
+										</div>
+										<div class="setting-item-control">
+											<button type="button" id="lark-api-clear-btn" class="mod-warning">Clear</button>
+										</div>
+									</div>
+								</div>
 								<div class="setting-item setting-item-heading"><h3 data-i18n="advanced">Advanced</h3></div>
 								<div class="setting-items">
 									<div class="setting-item mod-horizontal">

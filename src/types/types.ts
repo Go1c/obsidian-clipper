@@ -70,6 +70,18 @@ export interface ReaderSettings {
 	customCss: string;
 }
 
+export interface LarkPluginConnectionSettings {
+	endpoint: string;
+	apiKey: string;
+	defaultNoteFolder: string;
+	defaultAssetFolder: string;
+}
+
+export interface LarkApiCredentials {
+	appId: string;
+	appSecret: string;
+}
+
 export interface Settings {
 	vaults: string[];
 	showMoreActionsButton: boolean;
@@ -97,6 +109,7 @@ export interface Settings {
 	history: HistoryEntry[];
 	ratings: Rating[];
 	saveBehavior: 'addToObsidian' | 'saveFile' | 'copyToClipboard';
+	larkPlugin?: LarkPluginConnectionSettings;
 }
 
 export interface ModelConfig {

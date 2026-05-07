@@ -1,9 +1,15 @@
 import browser from './browser-polyfill';
-import { Settings, ModelConfig, PropertyType, HistoryEntry, Provider, Rating } from '../types/types';
+import { Settings, ModelConfig, PropertyType, HistoryEntry, Provider, Rating, LarkPluginConnectionSettings } from '../types/types';
 import { debugLog } from './debug';
-import { copyToClipboard } from 'core/popup';
 
 export type { Settings, ModelConfig, PropertyType, HistoryEntry, Provider, Rating };
+
+export const defaultLarkPluginSettings: LarkPluginConnectionSettings = {
+	endpoint: 'http://127.0.0.1:27124',
+	apiKey: '',
+	defaultNoteFolder: 'Lark Docs',
+	defaultAssetFolder: 'assets/larkdoc'
+};
 
 export let generalSettings: Settings = {
 	vaults: [],
@@ -47,7 +53,8 @@ export let generalSettings: Settings = {
 	},
 	history: [],
 	ratings: [],
-	saveBehavior: 'addToObsidian'
+	saveBehavior: 'addToObsidian',
+	larkPlugin: { ...defaultLarkPluginSettings }
 };
 
 export function setLocalStorage(key: string, value: any): Promise<void> {
@@ -90,6 +97,7 @@ interface StorageData {
 		highlightActiveLine?: boolean;
 		customCss?: string;
 	};
+	lark_plugin_settings?: Partial<LarkPluginConnectionSettings>;
 	interpreter_settings?: {
 		interpreterModel?: string;
 		models?: ModelConfig[];
@@ -111,6 +119,32 @@ interface StorageData {
 }
 
 const CURRENT_MIGRATION_VERSION = 1;
+
+function normalizeTrimmedString(value: unknown, fallback: string): string {
+	if (typeof value !== 'string') {
+		return fallback;
+	}
+
+	const normalizedValue = value.trim();
+	return normalizedValue === '' ? fallback : normalizedValue;
+}
+
+export function sanitizeLarkPluginSettings(
+	settings?: Partial<LarkPluginConnectionSettings>
+): LarkPluginConnectionSettings {
+	return {
+		endpoint: normalizeTrimmedString(settings?.endpoint, defaultLarkPluginSettings.endpoint),
+		apiKey: normalizeTrimmedString(settings?.apiKey, defaultLarkPluginSettings.apiKey),
+		defaultNoteFolder: normalizeTrimmedString(
+			settings?.defaultNoteFolder,
+			defaultLarkPluginSettings.defaultNoteFolder
+		),
+		defaultAssetFolder: normalizeTrimmedString(
+			settings?.defaultAssetFolder,
+			defaultLarkPluginSettings.defaultAssetFolder
+		)
+	};
+}
 
 export async function loadSettings(): Promise<Settings> {
 	const data = await browser.storage.sync.get(null) as StorageData;
@@ -159,6 +193,7 @@ export async function loadSettings(): Promise<Settings> {
 		},
 		history: [],
 		ratings: [],
+		larkPlugin: { ...defaultLarkPluginSettings },
 	};
 
 	// Update migration version if needed
@@ -175,6 +210,7 @@ export async function loadSettings(): Promise<Settings> {
 	const sanitizedProviders = Array.isArray(data.interpreter_settings?.providers) 
 		? data.interpreter_settings.providers.filter(p => p && typeof p === 'object' && typeof p.id === 'string') 
 		: [];
+	const sanitizedLarkPlugin = sanitizeLarkPluginSettings(data.lark_plugin_settings);
 
 	// Load user settings
 	const loadedSettings: Settings = {
@@ -216,7 +252,8 @@ export async function loadSettings(): Promise<Settings> {
 		stats: data.stats || defaultSettings.stats,
 		history: data.history || defaultSettings.history,
 		ratings: data.ratings || defaultSettings.ratings,
-		saveBehavior: data.general_settings?.saveBehavior ?? defaultSettings.saveBehavior
+		saveBehavior: data.general_settings?.saveBehavior ?? defaultSettings.saveBehavior,
+		larkPlugin: sanitizedLarkPlugin
 	};
 
 	generalSettings = loadedSettings;
@@ -228,6 +265,11 @@ export async function saveSettings(settings?: Partial<Settings>): Promise<void> 
 	if (settings) {
 		generalSettings = { ...generalSettings, ...settings };
 	}
+
+	generalSettings = {
+		...generalSettings,
+		larkPlugin: sanitizeLarkPluginSettings(generalSettings.larkPlugin)
+	};
 
 	await browser.storage.sync.set({
 		vaults: generalSettings.vaults,
@@ -252,6 +294,7 @@ export async function saveSettings(settings?: Partial<Settings>): Promise<void> 
 			interpreterAutoRun: generalSettings.interpreterAutoRun,
 			defaultPromptContext: generalSettings.defaultPromptContext
 		},
+		lark_plugin_settings: sanitizeLarkPluginSettings(generalSettings.larkPlugin),
 		property_types: generalSettings.propertyTypes,
 		reader_settings: {
 			fontSize: generalSettings.readerSettings.fontSize,

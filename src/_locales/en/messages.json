@@ -457,6 +457,45 @@
 	"languageDescription": {
 		"message": "Choose the display language for the extension interface."
 	},
+	"larkPluginApiKey": {
+		"message": "API key"
+	},
+	"larkPluginApiKeyDescription": {
+		"message": "Bearer token used when the extension talks to the plugin."
+	},
+	"larkPluginApiKeyPlaceholder": {
+		"message": "API key"
+	},
+	"larkPluginDefaultAssetFolder": {
+		"message": "Default asset folder"
+	},
+	"larkPluginDefaultAssetFolderDescription": {
+		"message": "Default folder for assets generated during Lark imports."
+	},
+	"larkPluginDefaultAssetFolderPlaceholder": {
+		"message": "assets/larkdoc"
+	},
+	"larkPluginDefaultNoteFolder": {
+		"message": "Default note folder"
+	},
+	"larkPluginDefaultNoteFolderDescription": {
+		"message": "Default folder for imported Lark notes in your vault."
+	},
+	"larkPluginDefaultNoteFolderPlaceholder": {
+		"message": "Lark Docs"
+	},
+	"larkPluginEndpoint": {
+		"message": "Endpoint"
+	},
+	"larkPluginEndpointDescription": {
+		"message": "Base URL for the local Lark import plugin service."
+	},
+	"larkPluginEndpointPlaceholder": {
+		"message": "http://127.0.0.1:27124"
+	},
+	"larkPluginHeading": {
+		"message": "Lark plugin"
+	},
 	"last30Days": {
 		"message": "Last 30 days"
 	},
