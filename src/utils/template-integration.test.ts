@@ -17,6 +17,10 @@ const FROZEN_DATE = new Date('2025-01-15T12:00:00Z');
 beforeAll(() => { vi.useFakeTimers({ now: FROZEN_DATE }); });
 afterAll(() => { vi.useRealTimers(); });
 
+function normalizeNewlines(value: string): string {
+	return value.replace(/\r\n/g, '\n');
+}
+
 // ---------------------------------------------------------------------------
 // Fixture types
 // ---------------------------------------------------------------------------
@@ -150,6 +154,6 @@ describe('Template fixtures', () => {
 			);
 		}
 
-		expect(result.trim()).toEqual(expected.trim());
+		expect(normalizeNewlines(result).trim()).toEqual(normalizeNewlines(expected).trim());
 	});
 });

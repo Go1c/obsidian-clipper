@@ -1,0 +1,9 @@
+{
+  "id": "lark-local-import",
+  "name": "Lark Local Import",
+  "version": "0.1.0",
+  "minAppVersion": "1.5.0",
+  "description": "Receives Feishu/Lark imports from the browser extension and writes local assets into the vault.",
+  "author": "Go1c",
+  "isDesktopOnly": true
+}

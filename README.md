@@ -30,46 +30,52 @@
 
 ## Quick Start
 
-### 1. Build the browser extension
+Install both parts from the same GitHub repository.
 
-```bash
-npm install
-npm run build:chrome
-```
+### 1. Install The Chrome Extension
 
-### 2. Load unpacked in Chrome
+1. Open this repository's **GitHub Releases** page.
+2. Download `lark-web-clipper-chrome-v*.zip`.
+3. Unzip it.
+4. Open `chrome://extensions`.
+5. Enable **Developer mode**.
+6. Click **Load unpacked** and select the unzipped folder that contains `manifest.json`.
 
-1. Open `chrome://extensions`
-2. Enable **Developer mode**
-3. Click **Load unpacked** → select the `dist/` directory
+Chrome cannot install this ZIP directly. Unzip it first.
 
-### 3. Install the companion Obsidian plugin
+### 2. Install The Obsidian Plugin With BRAT
 
-Copy `obsidian-lark-import-plugin/` into your vault's `.obsidian/plugins/obsidian-lark-import/` folder, then enable it in Obsidian Settings → Community Plugins.
+1. Install and enable [BRAT](https://github.com/TfTHacker/obsidian42-brat) in Obsidian.
+2. Run **BRAT: Add a beta plugin for testing**.
+3. Enter this repository's GitHub URL.
+4. Enable **Lark Local Import** in **Settings -> Community plugins**.
 
-### 4. Configure the extension
+### 3. Connect The Extension To Obsidian
 
-Open the extension settings (click the gear icon in the popup):
+Open the Obsidian plugin settings, copy the generated API key, then paste it into the Chrome extension settings:
 
 | Field | Value |
 |-------|-------|
-| **Lark plugin → Endpoint** | `http://127.0.0.1:27124` |
-| **Lark plugin → Default note folder** | e.g. `Lark Docs` |
-| **Lark plugin → Default asset folder** | e.g. `assets/larkdoc` |
+| **Lark plugin -> Endpoint** | `http://127.0.0.1:27124` |
+| **Lark plugin -> API key** | API key copied from Obsidian |
+| **Lark plugin -> Default note folder** | e.g. `Lark Docs` |
+| **Lark plugin -> Default asset folder** | e.g. `assets/larkdoc` |
 
-### 5. (Optional) Enable API mode
+Full setup details: [Install guide](docs/lark-install.md).
 
-1. Go to [Feishu Open Platform](https://open.feishu.cn/) → create a **self-built app**.
+### 4. Optional: Enable API Mode
+
+1. Go to [Feishu Open Platform](https://open.feishu.cn/) and create a **self-built app**.
 2. Under Permissions, grant:
    - `wiki:wiki:readonly`
    - `docx:document:readonly`
    - `drive:drive:readonly`
-3. Publish the app (or use test mode for personal documents).
-4. In the extension settings, scroll to **Lark API credentials** and enter:
+3. Publish the app, or use test mode for personal documents.
+4. In extension settings, open **Lark API credentials** and enter:
    - **App ID**: `cli_xxxxxxxxxxxxxxxx`
    - **App Secret**: your app secret (stored locally, never synced)
 
-Once configured, every Lark clip will use the API path automatically.
+Once configured, every Lark clip tries API mode first and falls back to DOM mode on failure.
 
 ## Usage
 
@@ -81,6 +87,8 @@ Once configured, every Lark clip will use the API path automatically.
 
 ## Troubleshooting
 
+Detailed help: [Troubleshooting guide](docs/lark-troubleshooting.md).
+
 | Symptom | Cause | Fix |
 |---------|-------|-----|
 | Images show `<!-- image download failed -->` | Transient API timeout or rate limit | Re-clip; the extension retries 3× automatically |
@@ -91,10 +99,14 @@ Once configured, every Lark clip will use the API path automatically.
 
 ## Development
 
+Detailed release steps: [Development and release](docs/lark-development.md).
+
 ```bash
-npm run dev:chrome    # watch mode
-npm test             # vitest
-npm run build        # all browsers
+npm run dev:chrome          # watch mode
+npm test                    # browser extension tests
+npm run test:plugin         # Obsidian plugin tests
+npm run test:release        # release packaging tests
+npm run package:release     # build and package release assets
 ```
 
 ### Project structure (Lark-specific)
@@ -135,46 +147,52 @@ MIT — same as upstream Obsidian Web Clipper. Trademarks and marketing assets e
 
 ## 快速开始
 
-### 1. 构建浏览器扩展
+从同一个 GitHub 仓库安装 Chrome 扩展和 Obsidian 插件。
 
-```bash
-npm install
-npm run build:chrome
-```
+### 1. 安装 Chrome 扩展
 
-### 2. 加载到 Chrome
+1. 打开本仓库的 **GitHub Releases** 页面。
+2. 下载 `lark-web-clipper-chrome-v*.zip`。
+3. 解压 ZIP。
+4. 打开 `chrome://extensions`。
+5. 开启**开发者模式**。
+6. 点击**加载已解压的扩展程序**，选择包含 `manifest.json` 的文件夹。
 
-1. 打开 `chrome://extensions`
-2. 开启**开发者模式**
-3. 点击**加载已解压的扩展程序** → 选择 `dist/` 目录
+Chrome 不能直接安装这个 ZIP，需要先解压。
 
-### 3. 安装 Obsidian 伴侣插件
+### 2. 使用 BRAT 安装 Obsidian 插件
 
-将 `obsidian-lark-import-plugin/` 复制到 vault 的 `.obsidian/plugins/obsidian-lark-import/` 目录，然后在 Obsidian 设置 → 第三方插件中启用。
+1. 在 Obsidian 中安装并启用 [BRAT](https://github.com/TfTHacker/obsidian42-brat)。
+2. 运行命令 **BRAT: Add a beta plugin for testing**。
+3. 输入本仓库的 GitHub URL。
+4. 在 **设置 -> 第三方插件** 中启用 **Lark Local Import**。
 
-### 4. 配置扩展
+### 3. 连接 Chrome 扩展和 Obsidian
 
-打开扩展设置（弹窗中点齿轮图标）：
+打开 Obsidian 插件设置，复制生成的 API key，然后粘贴到 Chrome 扩展设置：
 
 | 字段 | 值 |
 |------|-----|
-| **Lark plugin → Endpoint** | `http://127.0.0.1:27124` |
-| **Lark plugin → Default note folder** | 如 `Lark Docs` |
-| **Lark plugin → Default asset folder** | 如 `assets/larkdoc` |
+| **Lark plugin -> Endpoint** | `http://127.0.0.1:27124` |
+| **Lark plugin -> API key** | 从 Obsidian 复制的 API key |
+| **Lark plugin -> Default note folder** | 如 `Lark Docs` |
+| **Lark plugin -> Default asset folder** | 如 `assets/larkdoc` |
 
-### 5. （可选）启用 API 模式
+完整步骤见：[安装指南](docs/lark-install.md)。
 
-1. 前往[飞书开放平台](https://open.feishu.cn/) → 创建**自建应用**
+### 4. 可选：启用 API 模式
+
+1. 前往[飞书开放平台](https://open.feishu.cn/)并创建**自建应用**。
 2. 在权限管理中开通：
    - `wiki:wiki:readonly`（知识库只读）
    - `docx:document:readonly`（文档只读）
    - `drive:drive:readonly`（云空间只读）
-3. 发布应用（或使用测试模式访问个人文档）
-4. 在扩展设置页滚动到 **Lark API credentials**，填入：
+3. 发布应用，或使用测试模式访问个人文档。
+4. 在扩展设置页打开 **Lark API credentials**，填入：
    - **App ID**：`cli_xxxxxxxxxxxxxxxx`
    - **App Secret**：你的应用密钥（仅存本地，不会同步）
 
-配置完成后，每次抓取飞书文档都会自动走 API 路径。
+配置完成后，每次抓取飞书文档都会优先使用 API 模式，失败时自动回退到 DOM 模式。
 
 ## 使用方法
 

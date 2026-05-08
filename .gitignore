@@ -13,8 +13,11 @@ dist/
 dist_firefox/
 dist_safari/
 builds/
+release/
 changelogs/
 assets/shared
+*.map
+obsidian-lark-import-plugin/main.js
 
 # Xcode
 *.xcuserstate
