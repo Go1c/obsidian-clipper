@@ -200,7 +200,7 @@ describe('createLarkSnapshotDocument', () => {
 		const { document } = parse(`
 			<html>
 				<head>
-					<base href="https://fenglangames.feishu.cn/wiki/UTCWwfyCiiXumGkBgGOchuLpnqc" />
+					<base href="https://example.feishu.cn/wiki/wikcnExampleToken" />
 				</head>
 				<body>
 					<div data-block-id="image-block">
@@ -213,14 +213,14 @@ describe('createLarkSnapshotDocument', () => {
 		const snapshot = await createLarkSnapshotDocument(document, { settleMs: 0 });
 
 		expect(snapshot.querySelector('base')?.getAttribute('href')).toBe(
-			'https://fenglangames.feishu.cn/wiki/UTCWwfyCiiXumGkBgGOchuLpnqc',
+			'https://example.feishu.cn/wiki/wikcnExampleToken',
 		);
 	});
 
 	test('collects all numbered steps from a virtualized Lark document', async () => {
 		const { document, window } = parse(`
 			<html>
-				<head><title>Claude Desktop 免登录 支持任意模型 安装说明 - 飞书云文档</title></head>
+				<head><title>示例工具本地导入安装说明 - 飞书云文档</title></head>
 				<body>
 					<h1 data-testid="doc-title">飞书云文档</h1>
 					<div id="scroll-root"></div>
@@ -229,14 +229,14 @@ describe('createLarkSnapshotDocument', () => {
 		`);
 		const scrollRoot = document.getElementById('scroll-root') as HTMLElement;
 		const steps = [
-			'1. 初次安装需要 VPN 开启全局 + TUN 模式',
+			'1. 初次安装需要打开示例配置',
 			'2. 下载安装器',
 			'3. 点击启动安装',
-			'4. 安装成功会有登陆界面 这里不需要登陆账号',
-			'5. 开启 Develop Mode',
-			'6. 点击 Configure Third-Party',
+			'4. 安装成功后会出现示例设置界面',
+			'5. 开启示例模式',
+			'6. 点击配置第三方服务',
 			'7. 配置公司的URL 和 API Key',
-			'8. 新建一个 Project 然后选择本地的目录工程',
+			'8. 新建一个项目然后选择本地目录',
 		];
 
 		window.requestAnimationFrame = ((callback: FrameRequestCallback) => {
@@ -245,28 +245,28 @@ describe('createLarkSnapshotDocument', () => {
 		}) as typeof window.requestAnimationFrame;
 		installVirtualizedBlocks(document, scrollRoot, steps, 1);
 
-		const partial = extractLarkPage(document, 'https://team.feishu.cn/wiki/UTCWwfyCiiXumGkBgGOchuLpnqc');
+		const partial = extractLarkPage(document, 'https://example.feishu.cn/wiki/wikcnExampleToken');
 		expect(partial.plainText).toContain('2. 下载安装器');
-		expect(partial.plainText).toContain('5. 开启 Develop Mode');
-		expect(partial.plainText).not.toContain('1. 初次安装需要 VPN 开启全局 + TUN 模式');
-		expect(partial.plainText).not.toContain('8. 新建一个 Project 然后选择本地的目录工程');
+		expect(partial.plainText).toContain('5. 开启示例模式');
+		expect(partial.plainText).not.toContain('1. 初次安装需要打开示例配置');
+		expect(partial.plainText).not.toContain('8. 新建一个项目然后选择本地目录');
 
 		const snapshot = await createLarkSnapshotDocument(document, { settleMs: 0 });
-		const result = extractLarkPage(snapshot, 'https://team.feishu.cn/wiki/UTCWwfyCiiXumGkBgGOchuLpnqc');
+		const result = extractLarkPage(snapshot, 'https://example.feishu.cn/wiki/wikcnExampleToken');
 
-		expect(result.title).toBe('Claude Desktop 免登录 支持任意模型 安装说明');
-		expect(result.plainText).toContain('1. 初次安装需要 VPN 开启全局 + TUN 模式');
-		expect(result.plainText).toContain('5. 开启 Develop Mode');
-		expect(result.plainText).toContain('8. 新建一个 Project 然后选择本地的目录工程');
-		expect(result.contentHtml).toContain('<li>初次安装需要 VPN 开启全局 + TUN 模式</li>');
-		expect(result.contentHtml).toContain('<li>点击 Configure Third-Party</li>');
-		expect(result.contentHtml).toContain('<li>新建一个 Project 然后选择本地的目录工程</li>');
+		expect(result.title).toBe('示例工具本地导入安装说明');
+		expect(result.plainText).toContain('1. 初次安装需要打开示例配置');
+		expect(result.plainText).toContain('5. 开启示例模式');
+		expect(result.plainText).toContain('8. 新建一个项目然后选择本地目录');
+		expect(result.contentHtml).toContain('<li>初次安装需要打开示例配置</li>');
+		expect(result.contentHtml).toContain('<li>点击配置第三方服务</li>');
+		expect(result.contentHtml).toContain('<li>新建一个项目然后选择本地目录</li>');
 	});
 
 	test('orders blocks from the top of the document rather than the current viewport', async () => {
 		const { document, window } = parse(`
 			<html>
-				<head><title>Claude Desktop 免登录 支持任意模型 安装说明 - 飞书云文档</title></head>
+				<head><title>示例工具本地导入安装说明 - 飞书云文档</title></head>
 				<body>
 					<h1 data-testid="doc-title">飞书云文档</h1>
 					<div id="scroll-root"></div>
@@ -275,14 +275,14 @@ describe('createLarkSnapshotDocument', () => {
 		`);
 		const scrollRoot = document.getElementById('scroll-root') as HTMLElement;
 		const steps = [
-			'1. 初次安装需要 VPN 开启全局 + TUN 模式',
+			'1. 初次安装需要打开示例配置',
 			'2. 下载安装器',
 			'3. 点击启动安装',
-			'4. 安装成功会有登陆界面 这里不需要登陆账号',
-			'5. 开启 Develop Mode',
-			'6. 点击 Configure Third-Party',
+			'4. 安装成功后会出现示例设置界面',
+			'5. 开启示例模式',
+			'6. 点击配置第三方服务',
 			'7. 配置公司的URL 和 API Key',
-			'8. 新建一个 Project 然后选择本地的目录工程',
+			'8. 新建一个项目然后选择本地目录',
 		];
 
 		window.requestAnimationFrame = ((callback: FrameRequestCallback) => {
@@ -292,21 +292,21 @@ describe('createLarkSnapshotDocument', () => {
 		installVirtualizedBlocks(document, scrollRoot, steps, 4);
 
 		const snapshot = await createLarkSnapshotDocument(document, { settleMs: 0 });
-		const result = extractLarkPage(snapshot, 'https://team.feishu.cn/wiki/UTCWwfyCiiXumGkBgGOchuLpnqc');
+		const result = extractLarkPage(snapshot, 'https://example.feishu.cn/wiki/wikcnExampleToken');
 
 		const lines = result.plainText.split('\n');
 		expect(lines.slice(0, 4)).toEqual([
-			'1. 初次安装需要 VPN 开启全局 + TUN 模式',
+			'1. 初次安装需要打开示例配置',
 			'2. 下载安装器',
 			'3. 点击启动安装',
-			'4. 安装成功会有登陆界面 这里不需要登陆账号',
+			'4. 安装成功后会出现示例设置界面',
 		]);
 	});
 
 	test('prefers cleaner block variants over OCR-polluted mirrors seen at other scroll positions', async () => {
 		const { document, window } = parse(`
 			<html>
-				<head><title>Claude Desktop 免登录 支持任意模型 安装说明 - 飞书云文档</title></head>
+				<head><title>示例工具本地导入安装说明 - 飞书云文档</title></head>
 				<body>
 					<h1 data-testid="doc-title">飞书云文档</h1>
 					<div id="scroll-root"></div>
@@ -326,31 +326,31 @@ describe('createLarkSnapshotDocument', () => {
 			start => {
 				if (start === 3) {
 					return [
-						'<div data-block-id="step-4">4. 安装成功会有登陆界面 这里不需要登陆账号</div>',
-						'<div data-block-id="step-5">5. 开启 Develop Mode</div>',
-						'<div data-block-id="step-6">6. 点击 Configure Third-Party</div>',
-						'<div data-block-id="step-7">7. 配置公司的URL 和 API Key 然后 Apple Locally URL https://b.onerouter.com/api Key 公司为每人申请的Cladue Key</div>',
+						'<div data-block-id="step-4">4. 安装成功后会出现示例设置界面</div>',
+						'<div data-block-id="step-5">5. 开启示例模式</div>',
+						'<div data-block-id="step-6">6. 点击配置第三方服务</div>',
+						'<div data-block-id="step-7">7. 配置示例 URL 和 API Key 后保存到本地 URL https://example.invalid/api Key 示例占位文本</div>',
 					].join('');
 				}
 
 				if (start === 4) {
 					return [
-						'<div data-block-id="step-5">5. 开启 Develop Mode</div>',
-						'<div data-block-id="step-6">6. 点击 Configure Third-Party</div>',
-						'<div data-block-id="step-7">7. 配置公司的URL 和 API Key 然后 Apple Locally</div>',
-						'<div data-block-id="step-8">8. 新建一个 Project 然后选择本地的目录工程</div>',
+						'<div data-block-id="step-5">5. 开启示例模式</div>',
+						'<div data-block-id="step-6">6. 点击配置第三方服务</div>',
+						'<div data-block-id="step-7">7. 配置示例 URL 和 API Key 后保存到本地</div>',
+						'<div data-block-id="step-8">8. 新建一个项目然后选择本地目录</div>',
 					].join('');
 				}
 
 				const blocks = [
-					'1. 初次安装需要 VPN 开启全局 + TUN 模式',
+					'1. 初次安装需要打开示例配置',
 					'2. 下载安装器',
 					'3. 点击启动安装',
-					'4. 安装成功会有登陆界面 这里不需要登陆账号',
-					'5. 开启 Develop Mode',
-					'6. 点击 Configure Third-Party',
-					'7. 配置公司的URL 和 API Key 然后 Apple Locally',
-					'8. 新建一个 Project 然后选择本地的目录工程',
+					'4. 安装成功后会出现示例设置界面',
+					'5. 开启示例模式',
+					'6. 点击配置第三方服务',
+					'7. 配置示例 URL 和 API Key 后保存到本地',
+					'8. 新建一个项目然后选择本地目录',
 				];
 				return blocks
 					.slice(start, start + 4)
@@ -362,16 +362,16 @@ describe('createLarkSnapshotDocument', () => {
 		);
 
 		const snapshot = await createLarkSnapshotDocument(document, { settleMs: 0 });
-		const result = extractLarkPage(snapshot, 'https://team.feishu.cn/wiki/UTCWwfyCiiXumGkBgGOchuLpnqc');
+		const result = extractLarkPage(snapshot, 'https://example.feishu.cn/wiki/wikcnExampleToken');
 
-		expect(result.plainText).toContain('7. 配置公司的URL 和 API Key 然后 Apple Locally');
-		expect(result.plainText).not.toContain('URL https://b.onerouter.com/api Key 公司为每人申请的Cladue Key');
+		expect(result.plainText).toContain('7. 配置示例 URL 和 API Key 后保存到本地');
+		expect(result.plainText).not.toContain('URL https://example.invalid/api Key 示例占位文本');
 	});
 
 	test('ignores deeper scroll containers that do not change the visible Lark blocks', async () => {
 		const { document, window } = parse(`
 			<html>
-				<head><title>Claude Desktop 免登录 支持任意模型 安装说明 - 飞书云文档</title></head>
+				<head><title>示例工具本地导入安装说明 - 飞书云文档</title></head>
 				<body>
 					<h1 data-testid="doc-title">飞书云文档</h1>
 					<div id="outer-scroll">
@@ -383,14 +383,14 @@ describe('createLarkSnapshotDocument', () => {
 		const outerScrollRoot = document.getElementById('outer-scroll') as HTMLElement;
 		const innerScrollRoot = document.getElementById('inner-scroll') as HTMLElement;
 		const steps = [
-			'1. 初次安装需要 VPN 开启全局 + TUN 模式',
+			'1. 初次安装需要打开示例配置',
 			'2. 下载安装器',
 			'3. 点击启动安装',
-			'4. 安装成功会有登陆界面 这里不需要登陆账号',
-			'5. 开启 Develop Mode',
-			'6. 点击 Configure Third-Party',
-			'7. 配置公司的URL 和 API Key 然后 Apple Locally （这里理论上也是支持 GPT5.5的模型 可以试试）',
-			'8. 新建一个 Project 然后选择本地的目录工程',
+			'4. 安装成功后会出现示例设置界面',
+			'5. 开启示例模式',
+			'6. 点击配置第三方服务',
+			'7. 配置示例 URL 和 API Key 后保存到本地 （这里是示例说明文字，可以忽略）',
+			'8. 新建一个项目然后选择本地目录',
 		];
 
 		window.requestAnimationFrame = ((callback: FrameRequestCallback) => {
@@ -405,27 +405,27 @@ describe('createLarkSnapshotDocument', () => {
 			steps,
 			4,
 			[
-				'<div data-block-id="title-block">Claude Desktop 免登录 支持任意模型 安装说明 Claude Setup (1).exe6.67MB</div>',
-				'<div data-block-id="step-6">6. 点击 Configure Third-Party</div>',
-				'<div data-block-id="step-7">7. 配置公司的URL 和 API Key 然后 Apple Locally （这里理论上也是支持 GPT5.5的模型 可以试试） URL https://b.onerouter.com/api Key 公司为每人申请的Cladue Key</div>',
-				'<div data-block-id="step-8">8. 初次安装需要 VPN 开启全局 + TUN 模式 节点最好选择美国 全局代理 Tun模式</div>',
+				'<div data-block-id="title-block">示例工具本地导入安装说明 Example Installer.exe6.67MB</div>',
+				'<div data-block-id="step-6">6. 点击配置第三方服务</div>',
+				'<div data-block-id="step-7">7. 配置示例 URL 和 API Key 后保存到本地 （这里是示例说明文字，可以忽略） URL https://example.invalid/api Key 示例占位文本</div>',
+				'<div data-block-id="step-8">8. 初次安装需要打开示例配置并完成本地设置</div>',
 			].join(''),
 		);
 
 		const snapshot = await createLarkSnapshotDocument(document, { settleMs: 0 });
-		const result = extractLarkPage(snapshot, 'https://team.feishu.cn/wiki/UTCWwfyCiiXumGkBgGOchuLpnqc');
+		const result = extractLarkPage(snapshot, 'https://example.feishu.cn/wiki/wikcnExampleToken');
 		const lines = result.plainText.split('\n');
 
 		expect(lines.slice(0, 4)).toEqual([
-			'1. 初次安装需要 VPN 开启全局 + TUN 模式',
+			'1. 初次安装需要打开示例配置',
 			'2. 下载安装器',
 			'3. 点击启动安装',
-			'4. 安装成功会有登陆界面 这里不需要登陆账号',
+			'4. 安装成功后会出现示例设置界面',
 		]);
-		expect(result.plainText).toContain('7. 配置公司的URL 和 API Key 然后 Apple Locally （这里理论上也是支持 GPT5.5的模型 可以试试）');
-		expect(result.plainText).toContain('8. 新建一个 Project 然后选择本地的目录工程');
-		expect(result.plainText).not.toContain('Claude Setup (1).exe6.67MB');
-		expect(result.plainText).not.toContain('URL https://b.onerouter.com/api Key 公司为每人申请的Cladue Key');
-		expect(result.plainText).not.toContain('8. 初次安装需要 VPN 开启全局 + TUN 模式 节点最好选择美国 全局代理 Tun模式');
+		expect(result.plainText).toContain('7. 配置示例 URL 和 API Key 后保存到本地 （这里是示例说明文字，可以忽略）');
+		expect(result.plainText).toContain('8. 新建一个项目然后选择本地目录');
+		expect(result.plainText).not.toContain('Example Installer.exe6.67MB');
+		expect(result.plainText).not.toContain('URL https://example.invalid/api Key 示例占位文本');
+		expect(result.plainText).not.toContain('8. 初次安装需要打开示例配置并完成本地设置');
 	});
 });

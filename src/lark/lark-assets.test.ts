@@ -153,7 +153,7 @@ describe('discoverLarkAssets', () => {
 		const doc = parse(`
 			<html>
 				<head>
-					<base href="https://fenglangames.feishu.cn/wiki/UTCWwfyCiiXumGkBgGOchuLpnqc" />
+					<base href="https://example.feishu.cn/wiki/wikcnExampleToken" />
 				</head>
 				<body>
 					<div data-block-id="image-block">
@@ -174,7 +174,7 @@ describe('discoverLarkAssets', () => {
 				assetId: 'asset-001',
 				type: 'image',
 				blockId: 'image-block',
-				originalUrl: 'https://fenglangames.feishu.cn/space/api/box/stream/download/asynccode/?code=step-6',
+				originalUrl: 'https://example.feishu.cn/space/api/box/stream/download/asynccode/?code=step-6',
 				preferredName: 'image.png',
 				mimeType: 'image/png',
 				placeholder: '__LARK_ASSET_asset-001__',
@@ -265,8 +265,8 @@ describe('discoverLarkAssets', () => {
 				<body>
 					<div data-block-id="url-preview">
 						<img src="https://example.com/thumb.png" alt="thumbnail" />
-						<a href="https://example.com/redirect/https%3A%2F%2Fb.onerouter.com%2Fapi">
-							https://b.onerouter.com/api
+						<a href="https://example.com/redirect/https%3A%2F%2Fexample.invalid%2Fapi">
+							https://example.invalid/api
 						</a>
 						<span>167 KB</span>
 					</div>

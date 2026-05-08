@@ -33,8 +33,8 @@ afterEach(() => {
 
 describe('parseLarkApiUrl', () => {
 	test('extracts wiki token', () => {
-		expect(parseLarkApiUrl('https://x.feishu.cn/wiki/UTCWwfyCiiXumGkBgGOchuLpnqc')).toEqual({
-			wikiToken: 'UTCWwfyCiiXumGkBgGOchuLpnqc',
+		expect(parseLarkApiUrl('https://x.feishu.cn/wiki/wikcnExampleToken')).toEqual({
+			wikiToken: 'wikcnExampleToken',
 			docxToken: null,
 		});
 	});
